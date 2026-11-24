@@ -1,7 +1,7 @@
 :root {
   --fg: #ece8e4;
   --muted: #9a928c;
-  --dim: #6b6560;
+  --dim: #948b84;
   --card: rgba(22, 18, 17, 0.55);
   --card-hover: rgba(34, 26, 24, 0.7);
   --border: rgba(255, 255, 255, 0.08);
@@ -106,13 +106,12 @@ body.in-section .back-btn { opacity: 1; pointer-events: auto; transform: none; }
 /* projects */
 .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 .card {
-  display: flex; flex-direction: column; gap: .4rem; padding: 1.1rem 1.15rem;
-  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  text-decoration: none; transition: transform .25s ease, background .25s, border-color .25s;
+  display: flex; flex-direction: column; gap: .4rem; padding: 1.2rem 1.35rem;
+  border-radius: 22px;
+  text-decoration: none; transition: transform .25s ease, background .25s;
   min-width: 0;
 }
-.card:hover { transform: translateY(-3px); background: var(--card-hover); border-color: rgba(255,255,255,.16); }
+.card:hover { transform: translateY(-3px); --tint: rgba(44, 33, 26, .5); }
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .6rem; }
 .card h3 { font-size: 1rem; font-weight: 700; overflow-wrap: anywhere; }
 .badge {
@@ -128,7 +127,7 @@ body.in-section .back-btn { opacity: 1; pointer-events: auto; transform: none; }
 .ico.invert { filter: invert(1); }
 .site-link { margin-left: auto; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
 .site-link:hover { color: #fff; }
-.note { color: var(--dim); font-size: .8rem; margin-top: 1.25rem; }
+.note { color: var(--muted); font-size: .8rem; margin-top: 1.25rem; text-shadow: 0 1px 6px rgba(0,0,0,.9); }
 .note a { text-underline-offset: 3px; }
 
 /* contributions */
@@ -136,28 +135,25 @@ body.in-section .back-btn { opacity: 1; pointer-events: auto; transform: none; }
 .pr-filter {
   font: inherit; font-size: .82rem; color: var(--muted); cursor: pointer;
   display: inline-flex; align-items: center; gap: .45rem;
-  padding: .35rem .85rem; border-radius: 999px;
-  background: var(--card); border: 1px solid var(--border);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  transition: color .2s, border-color .2s, background .2s;
+  padding: .38rem .95rem; border-radius: 999px;
+  transition: color .2s, background .2s;
 }
 .pr-filter b { font-weight: 700; color: #fff; }
-.pr-filter:hover { color: #fff; border-color: rgba(255,255,255,.2); }
-.pr-filter.active { color: #fff; background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.28); }
-.pr-filter.merged.active { border-color: var(--merged); }
-.pr-filter.open.active { border-color: var(--pending); }
-.pr-filter.closed.active { border-color: var(--rejected); }
+.pr-filter:hover { color: #fff; --tint: rgba(44, 33, 26, .5); }
+.pr-filter.active { color: #fff; --tint: rgba(255,255,255,.14); }
+.pr-filter.merged.active { --glass-extra: inset 0 0 0 1px var(--merged); }
+.pr-filter.open.active { --glass-extra: inset 0 0 0 1px var(--pending); }
+.pr-filter.closed.active { --glass-extra: inset 0 0 0 1px var(--rejected); }
 
 .pr-list { display: flex; flex-direction: column; gap: .6rem; }
 .pr {
   --c: var(--muted);
-  display: flex; align-items: center; gap: .9rem; padding: .9rem 1.1rem;
-  background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--c);
-  border-radius: 12px; text-decoration: none; min-width: 0;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  --glass-extra: inset 3px 0 0 var(--c);
+  display: flex; align-items: center; gap: .9rem; padding: 1rem 1.25rem;
+  border-radius: 20px; text-decoration: none; min-width: 0;
   transition: transform .25s ease, background .25s;
 }
-.pr:hover { transform: translateX(3px); background: var(--card-hover); }
+.pr:hover { transform: translateX(3px); --tint: rgba(44, 33, 26, .5); }
 .pr.merged { --c: var(--merged); }
 .pr.open { --c: var(--pending); }
 .pr.closed { --c: var(--rejected); }
@@ -171,24 +167,24 @@ body.in-section .back-btn { opacity: 1; pointer-events: auto; transform: none; }
 }
 .pr-empty { color: var(--muted); font-size: .9rem; }
 
-/* liquid glass panel */
-.glass {
-  position: relative; isolation: isolate;
-  padding: 2rem 2.1rem;
-  border-radius: 30px;
+/* liquid glass material — shared by the About panel, cards, PR rows and filter pills */
+.glass, .card, .pr, .pr-filter {
+  --tint: rgba(20, 15, 12, .42);
+  position: relative; isolation: isolate; border: 0;
   background:
     linear-gradient(135deg, rgba(255,255,255,.13) 0%, rgba(255,255,255,.04) 38%, rgba(255,255,255,.02) 62%, rgba(255,255,255,.08) 100%),
-    rgba(20, 15, 12, .42);
+    var(--tint);
   backdrop-filter: blur(24px) saturate(180%) brightness(.9);
   -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(.9);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.35),
     inset 0 -1px 0 rgba(255,255,255,.08),
     inset 0 0 30px rgba(255,255,255,.05),
-    0 24px 60px rgba(0,0,0,.45);
+    var(--glass-extra, 0 0 #0000),
+    var(--drop, 0 14px 36px rgba(0,0,0,.35));
 }
 /* specular rim: brighter on top-left and bottom-right, like light bending on the edge */
-.glass::before {
+.glass::before, .card::before, .pr::before, .pr-filter::before {
   content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
   background: linear-gradient(135deg, rgba(255,255,255,.6), rgba(255,255,255,.08) 30%, rgba(255,255,255,.03) 65%, rgba(255,255,255,.35));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -196,10 +192,12 @@ body.in-section .back-btn { opacity: 1; pointer-events: auto; transform: none; }
   pointer-events: none; z-index: -1;
 }
 /* soft glare across the top */
-.glass::after {
+.glass::after, .card::after, .pr::after, .pr-filter::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
   background: radial-gradient(120% 60% at 20% 0%, rgba(255,255,255,.10), transparent 60%);
 }
+.glass { padding: 2rem 2.1rem; border-radius: 30px; --drop: 0 24px 60px rgba(0,0,0,.45); }
+.pr-filter { --drop: 0 6px 18px rgba(0,0,0,.3); }
 
 /* about */
 .about-head { display: flex; gap: 1.75rem; align-items: center; margin-bottom: 2.5rem; }
