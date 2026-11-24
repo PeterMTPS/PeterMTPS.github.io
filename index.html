@@ -7,7 +7,7 @@
   <meta name="description" content="Pedro (PeterMTPS) — estudante de Ciência da Computação. Projetos, sobre mim e links.">
   <link rel="icon" href="https://avatars.githubusercontent.com/u/181553179?v=4">
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
   <div class="bg-img" aria-hidden="true"></div>
@@ -104,9 +104,9 @@
           </ul>
           <h2 class="spaced">github</h2>
           <div class="stats" id="stats">
-            <div class="stat"><b id="st-repos">11</b><span>repositórios</span></div>
-            <div class="stat"><b id="st-stars">3</b><span>estrelas</span></div>
-            <div class="stat"><b id="st-followers">3</b><span>seguidores</span></div>
+            <div class="stat"><b id="st-repos" data-count="13">13</b><span>repositórios</span></div>
+            <div class="stat"><b id="st-stars" data-count="3">3</b><span>estrelas</span></div>
+            <div class="stat"><b id="st-followers" data-count="3">3</b><span>seguidores</span></div>
           </div>
         </div>
 
@@ -135,6 +135,46 @@
     /* ---------- bouncy letters ---------- */
     const uname = document.getElementById('username');
     uname.innerHTML = [...uname.textContent].map(c => `<span>${c}</span>`).join('');
+
+    /* ---------- entrance animations ----------
+       Items listed here get class .reveal and an index --i; CSS plays a staggered
+       rise-in every time their section gets .show. */
+    const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const REVEAL = {
+      home: '.avatar, .username, .tagline, .social',
+      projects: '.page-title, .card, .note',
+      contributions: '.page-title, .pr-filter, .pr, .pr-empty, .note',
+      about: '.glass, .about-head img, .about-head h1, .about-head .role, .about-head .bio, .block h2, .block li, .stat, .tag',
+    };
+    function stagger(id) {
+      document.getElementById(id).querySelectorAll(REVEAL[id]).forEach((el, i) => {
+        el.classList.add('reveal');
+        el.style.setProperty('--i', Math.min(i, 24));
+      });
+    }
+
+    /* ---------- numbers counting up from 0 ---------- */
+    function countUp(els) {
+      els.forEach(el => {
+        const target = +el.dataset.count || 0;
+        cancelAnimationFrame(el._raf);
+        if (REDUCE) { el.textContent = target; return; }
+        const t0 = performance.now(), delay = 300, dur = 1300;
+        el.textContent = 0;
+        const tick = now => {
+          const t = Math.min(Math.max((now - t0 - delay) / dur, 0), 1);
+          el.textContent = Math.round(target * (1 - Math.pow(1 - t, 3))); // ease-out cubic
+          if (t < 1) el._raf = requestAnimationFrame(tick);
+        };
+        el._raf = requestAnimationFrame(tick);
+      });
+    }
+    // update a counter's target; animate only if it changed while its section is on screen
+    function setCount(el, n) {
+      if (+el.dataset.count === n && el.textContent !== '') return;
+      el.dataset.count = n;
+      if (el.closest('.view.show')) countUp([el]); else el.textContent = n;
+    }
 
     /* ---------- projects (live from GitHub, with fallback) ---------- */
     const USER = 'PeterMTPS';
@@ -195,6 +235,7 @@
           <div class="meta">${lang}${stars}${site}</div>
         </a>`;
       }).join('');
+      stagger('projects');
     }
     document.getElementById('project-grid').addEventListener('click', e => {
       const s = e.target.closest('.site-link');
@@ -207,13 +248,13 @@
       .then(repos => {
         renderProjects(repos);
         const own = repos.filter(r => !r.fork);
-        document.getElementById('st-stars').textContent = own.reduce((n, r) => n + r.stargazers_count, 0);
+        setCount(document.getElementById('st-stars'), own.reduce((n, r) => n + r.stargazers_count, 0));
       }).catch(() => {});
     fetch(`https://api.github.com/users/${USER}`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(u => {
-        document.getElementById('st-repos').textContent = u.public_repos;
-        document.getElementById('st-followers').textContent = u.followers;
+        setCount(document.getElementById('st-repos'), u.public_repos);
+        setCount(document.getElementById('st-followers'), u.followers);
       }).catch(() => {});
 
     /* ---------- contributions (pull requests, live from GitHub search) ---------- */
@@ -234,7 +275,7 @@
     function renderPRs() {
       const counts = { all: prs.length, merged: 0, open: 0, closed: 0 };
       prs.forEach(p => counts[prStatus(p)]++);
-      Object.entries(counts).forEach(([k, n]) => document.getElementById('pr-count-' + k).textContent = n);
+      Object.entries(counts).forEach(([k, n]) => setCount(document.getElementById('pr-count-' + k), n));
       const shown = prs.filter(p => prFilter === 'all' || prStatus(p) === prFilter);
       document.getElementById('pr-list').innerHTML = shown.length ? shown.map(p => {
         const st = prStatus(p), s = PR_STATUS[st];
@@ -248,6 +289,7 @@
           <span class="pr-badge">${s.label}</span>
         </a>`;
       }).join('') : '<p class="pr-empty">nada por aqui ainda.</p>';
+      stagger('contributions');
     }
     document.getElementById('pr-filters').addEventListener('click', e => {
       const b = e.target.closest('.pr-filter');
@@ -270,6 +312,7 @@
       document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === key));
       document.body.classList.toggle('in-section', key !== 'home');
       document.getElementById(key).scrollTop = 0;
+      countUp(document.getElementById(key).querySelectorAll('[data-count]'));
     }
     document.querySelector('.back-btn').addEventListener('click', e => {
       e.preventDefault();
@@ -277,6 +320,7 @@
       route();
     });
     window.addEventListener('hashchange', route);
+    stagger('home'); stagger('about');
     route();
 
     /* ---------- background: night sky + martian dust + grain ---------- */

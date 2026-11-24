@@ -219,6 +219,17 @@ body.in-section .back-btn { opacity: 1; pointer-events: auto; transform: none; }
 .stat b { display: block; font-size: 1.3rem; color: #fff; line-height: 1.2; }
 .stat span { font-size: .75rem; color: var(--dim); }
 
+/* entrance animation: items rise in one after another when their section opens.
+   fill-mode "backwards" so hover transforms still work once it finishes */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px) scale(.97); }
+}
+.view.show .reveal {
+  animation: rise .65s cubic-bezier(.2, .8, .2, 1) backwards;
+  animation-delay: calc(120ms + var(--i, 0) * 45ms);
+}
+.stat b { font-variant-numeric: tabular-nums; }
+
 @media (max-width: 640px) {
   .glass { padding: 1.5rem 1.25rem; border-radius: 24px; }
   .pr { flex-wrap: wrap; row-gap: .45rem; }
@@ -233,5 +244,6 @@ body.in-section .back-btn { opacity: 1; pointer-events: auto; transform: none; }
   .page { padding-top: 5.5rem; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .view.show .reveal { animation: none; }
   *, *::before, *::after { transition-duration: .01ms !important; }
 }
