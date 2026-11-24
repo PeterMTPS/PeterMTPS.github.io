@@ -171,6 +171,36 @@ body.in-section .back-btn { opacity: 1; pointer-events: auto; transform: none; }
 }
 .pr-empty { color: var(--muted); font-size: .9rem; }
 
+/* liquid glass panel */
+.glass {
+  position: relative; isolation: isolate;
+  padding: 2rem 2.1rem;
+  border-radius: 30px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.13) 0%, rgba(255,255,255,.04) 38%, rgba(255,255,255,.02) 62%, rgba(255,255,255,.08) 100%),
+    rgba(20, 15, 12, .42);
+  backdrop-filter: blur(24px) saturate(180%) brightness(.9);
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.35),
+    inset 0 -1px 0 rgba(255,255,255,.08),
+    inset 0 0 30px rgba(255,255,255,.05),
+    0 24px 60px rgba(0,0,0,.45);
+}
+/* specular rim: brighter on top-left and bottom-right, like light bending on the edge */
+.glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,.6), rgba(255,255,255,.08) 30%, rgba(255,255,255,.03) 65%, rgba(255,255,255,.35));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none; z-index: -1;
+}
+/* soft glare across the top */
+.glass::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: radial-gradient(120% 60% at 20% 0%, rgba(255,255,255,.10), transparent 60%);
+}
+
 /* about */
 .about-head { display: flex; gap: 1.75rem; align-items: center; margin-bottom: 2.5rem; }
 .about-head img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
@@ -192,6 +222,7 @@ body.in-section .back-btn { opacity: 1; pointer-events: auto; transform: none; }
 .stat span { font-size: .75rem; color: var(--dim); }
 
 @media (max-width: 640px) {
+  .glass { padding: 1.5rem 1.25rem; border-radius: 24px; }
   .pr { flex-wrap: wrap; row-gap: .45rem; }
   .pr-body { flex-basis: calc(100% - 18px - .9rem); }
   .pr-badge { margin-left: calc(18px + .9rem); }
