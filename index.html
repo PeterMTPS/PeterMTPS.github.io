@@ -20,6 +20,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
       </a>
       <a href="#projects" data-nav="projects">Projects</a>
+      <a href="#contributions" data-nav="contributions">Contributions</a>
       <a href="#about" data-nav="about">About</a>
     </nav>
   </header>
@@ -61,6 +62,21 @@
       <h1 class="page-title">projects</h1>
       <div class="grid" id="project-grid"></div>
       <p class="note">puxado direto do <a href="https://github.com/PeterMTPS?tab=repositories" target="_blank" rel="noopener">github.com/PeterMTPS</a></p>
+    </div>
+  </section>
+
+  <!-- CONTRIBUTIONS -->
+  <section id="contributions" class="view">
+    <div class="page">
+      <h1 class="page-title">contributions</h1>
+      <div class="pr-filters" id="pr-filters">
+        <button class="pr-filter active" data-filter="all">todas <b id="pr-count-all">0</b></button>
+        <button class="pr-filter merged" data-filter="merged">aprovadas <b id="pr-count-merged">0</b></button>
+        <button class="pr-filter open" data-filter="open">em espera <b id="pr-count-open">0</b></button>
+        <button class="pr-filter closed" data-filter="closed">rejeitadas <b id="pr-count-closed">0</b></button>
+      </div>
+      <div class="pr-list" id="pr-list"></div>
+      <p class="note">pull requests públicos, puxados do <a href="https://github.com/pulls?q=author%3APeterMTPS+is%3Apr" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </section>
 
@@ -197,8 +213,54 @@
         document.getElementById('st-followers').textContent = u.followers;
       }).catch(() => {});
 
+    /* ---------- contributions (pull requests, live from GitHub search) ---------- */
+    const PR_STATUS = {
+      merged: { label: 'aprovada', icon: '<path d="M5 3.25a.75.75 0 1 1-1.5 0a.75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v5.256a2.251 2.251 0 1 0 1.5 0V8.5c.565.47 1.27.788 2.044.882l.008.001A2.25 2.25 0 0 0 9.25 11a2.25 2.25 0 1 0-1.494-3.932A2.25 2.25 0 0 1 5 5.372ZM4.25 13.5a.75.75 0 1 1 0-1.5a.75.75 0 0 1 0 1.5Zm7.5-2.25a.75.75 0 1 1-1.5 0a.75.75 0 0 1 1.5 0Z"/>' },
+      open:   { label: 'em espera', icon: '<path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0a.75.75 0 0 0-1.5 0Z"/>' },
+      closed: { label: 'rejeitada', icon: '<path d="M3.25 1A2.25 2.25 0 0 1 4 5.372v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.251 2.251 0 0 1 3.25 1Zm9.5 5.5a.75.75 0 0 1 .75.75v3.378a2.251 2.251 0 1 1-1.5 0V7.25a.75.75 0 0 1 .75-.75Zm-2.03-5.273a.75.75 0 0 1 1.06 0l.97.97l.97-.97a.748.748 0 0 1 1.265.332a.75.75 0 0 1-.205.729l-.97.97l.97.97a.751.751 0 0 1-.018 1.042a.751.751 0 0 1-1.042.018l-.97-.97l-.97.97a.749.749 0 0 1-1.275-.326a.749.749 0 0 1 .215-.734l.97-.97l-.97-.97a.75.75 0 0 1 0-1.06ZM2.5 3.25a.75.75 0 1 0 1.5 0a.75.75 0 0 0-1.5 0ZM3.25 12a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5Zm9.5 0a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5Z"/>' },
+    };
+    const prStatus = p => p.state === 'open' ? 'open' : (p.pull_request && p.pull_request.merged_at ? 'merged' : 'closed');
+    const PR_FALLBACK = [
+      { title: 'Split os_posix.cpp, nx_os.h and host.rs by job', number: 921, state: 'open', created_at: '2026-11-24T00:00:00Z', repository_url: 'https://api.github.com/repos/Dittobyte/Recompia', html_url: 'https://github.com/Dittobyte/Recompia/pull/921', pull_request: { merged_at: null } },
+      { title: 'README: mod.toml names the game version 2.0.1, not 2.0.1a', number: 920, state: 'closed', created_at: '2026-11-24T00:00:00Z', repository_url: 'https://api.github.com/repos/Dittobyte/Recompia', html_url: 'https://github.com/Dittobyte/Recompia/pull/920', pull_request: { merged_at: null } },
+      { title: 'Marsos 1.1', number: 1, state: 'closed', created_at: '2026-11-15T00:00:00Z', repository_url: 'https://api.github.com/repos/PeterMTPS/MarsOS', html_url: 'https://github.com/PeterMTPS/MarsOS/pull/1', pull_request: { merged_at: '2026-11-15T01:57:32Z' } },
+    ];
+    let prFilter = 'all', prs = PR_FALLBACK;
+    const fmtDate = s => new Date(s).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    function renderPRs() {
+      const counts = { all: prs.length, merged: 0, open: 0, closed: 0 };
+      prs.forEach(p => counts[prStatus(p)]++);
+      Object.entries(counts).forEach(([k, n]) => document.getElementById('pr-count-' + k).textContent = n);
+      const shown = prs.filter(p => prFilter === 'all' || prStatus(p) === prFilter);
+      document.getElementById('pr-list').innerHTML = shown.length ? shown.map(p => {
+        const st = prStatus(p), s = PR_STATUS[st];
+        const repo = p.repository_url.split('/repos/')[1];
+        return `<a class="pr ${st}" href="${esc(p.html_url)}" target="_blank" rel="noopener">
+          <svg class="pr-icon" viewBox="0 0 16 16" aria-hidden="true">${s.icon}</svg>
+          <div class="pr-body">
+            <div class="pr-title">${esc(p.title)}</div>
+            <div class="pr-meta">${esc(repo)} · #${p.number} · ${fmtDate(p.created_at)}</div>
+          </div>
+          <span class="pr-badge">${s.label}</span>
+        </a>`;
+      }).join('') : '<p class="pr-empty">nada por aqui ainda.</p>';
+    }
+    document.getElementById('pr-filters').addEventListener('click', e => {
+      const b = e.target.closest('.pr-filter');
+      if (!b) return;
+      prFilter = b.dataset.filter;
+      document.querySelectorAll('.pr-filter').forEach(x => x.classList.toggle('active', x === b));
+      renderPRs();
+    });
+    renderPRs();
+    fetch(`https://api.github.com/search/issues?q=author:${USER}+type:pr+is:public&sort=created&order=desc&per_page=100`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => { if (d.items && d.items.length) { prs = d.items; renderPRs(); } })
+      .catch(() => {});
+
     /* ---------- routing ---------- */
-    const views = { home: 'home', projects: 'projects', about: 'about' };
+    const views = { home: 'home', projects: 'projects', contributions: 'contributions', about: 'about' };
     function route() {
       const key = views[location.hash.slice(1)] || 'home';
       document.querySelectorAll('.view').forEach(v => v.classList.toggle('show', v.id === key));
